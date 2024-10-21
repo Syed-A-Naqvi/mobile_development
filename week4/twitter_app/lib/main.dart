@@ -35,12 +35,20 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  List<TweetWidget> tweets = [];
+  List<TweetWidget> feed = [];
+
+    // Function to move a tweet to the first position
+  void moveTweetToTop(TweetWidget tweet) {
+    setState(() {
+    feed.remove(tweet);  // Remove the tweet
+    feed.insert(0, tweet);  // Insert it at the first position
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-    tweets = [
+    feed = [
       TweetWidget(
         "Fish",
         "killawalle",
@@ -49,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
         120,
         45,
         300,
-        () => moveTweetToTop(this),
+        moveTweetToTop,
       ),
       TweetWidget(
         "Bijli",
@@ -59,7 +67,7 @@ class _MyHomePageState extends State<MyHomePage> {
         500,
         150,
         1200,
-        () => moveTweetToTop(this),
+        moveTweetToTop,
       ),
       TweetWidget(
         "Mirigh",
@@ -69,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
         800,
         300,
         2500,
-        () => moveTweetToTop(this),
+        moveTweetToTop,
       ),
     ];
   }
@@ -91,20 +99,12 @@ class _MyHomePageState extends State<MyHomePage> {
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxWidth),
             child: Column(
-              children: tweets,
+              children: feed,
             ),
           ),
         ),
       ),
     );
-  }
-
-  // Function to move a tweet to the first position
-  void moveTweetToTop(TweetWidget tweet) {
-    setState(() {
-      tweets.remove(tweet);  // Remove the tweet
-      tweets.insert(0, tweet);  // Insert it at the first position
-    });
   }
 
 }

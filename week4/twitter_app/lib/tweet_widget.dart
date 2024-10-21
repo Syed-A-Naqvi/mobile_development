@@ -12,12 +12,19 @@ class TweetWidget extends StatelessWidget {
   final int numComments;
   final int numRetweets;
   final int numLikes;
-  final VoidCallback moveToTop;
+  final Function(TweetWidget) moveToTop;
   
-  TweetWidget(this.userShortName, this.userLongName, this.description,
-                    this.imageURL, this.numComments, this.numRetweets,
-                    this.numLikes, this.moveTo     {super.key})
-                    : timeStamp = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+  TweetWidget(
+    this.userShortName,
+    this.userLongName,
+    this.description,
+    this.imageURL,
+    this.numComments,
+    this.numRetweets,
+    this.numLikes,
+    this.moveToTop,
+    {super.key})
+    : timeStamp = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
 
   // Method to generate a random color
   Color _getRandomColor() {
@@ -93,7 +100,12 @@ class TweetWidget extends StatelessWidget {
                     errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
                   ),
                 ),
-                ActionsRow(initialComments: numComments, initialLikes: numLikes, initialRetweets: numRetweets),
+                ActionsRow(initialComments: numComments,
+                  initialLikes: numLikes,
+                  initialRetweets: numRetweets,
+                  parentTweet: this,
+                  moveToTop: moveToTop,
+                ),
               ],
             ),
           ),
@@ -108,12 +120,16 @@ class ActionsRow extends StatefulWidget {
   final int initialComments;
   final int initialRetweets;
   final int initialLikes;
+  final TweetWidget parentTweet;
+  final Function(TweetWidget) moveToTop;
 
   const ActionsRow({
     super.key,
     this.initialComments = 0,
     this.initialRetweets = 0,
     this.initialLikes = 0,
+    required this.parentTweet,
+    required this.moveToTop,
   });
 
   @override
@@ -125,12 +141,12 @@ class ActionsRowState extends State<ActionsRow> {
   late int commentsCount;
   late int retweetsCount;
   late int likesCount;
-
-
-  bool liked = false;
-  bool retweeted = false;
-  bool bookmarked = false;
-  bool commented = false;
+  late TweetWidget parentTweet;
+  late Function(TweetWidget) moveToTop;
+  late bool liked;
+  late bool retweeted;
+  late bool bookmarked;
+  late bool commented;
 
   @override
   void initState() {
@@ -139,23 +155,30 @@ class ActionsRowState extends State<ActionsRow> {
     commentsCount = widget.initialComments;
     retweetsCount = widget.initialRetweets;
     likesCount = widget.initialLikes;
+    parentTweet = widget.parentTweet;
+    moveToTop = widget.moveToTop;
+    // Initialize boolean states
+    liked = false;
+    retweeted = false;
+    bookmarked = false;
+    commented = false;
   }
 
-Widget _buildActionButton({
-  required IconData icon,
-  int? count,
-  required VoidCallback onPressed,
-}) {
-  return Row(
-    children: [
-      IconButton(
-        icon: Icon(icon),
-        onPressed: onPressed,
-      ),
-      if (count != null) Text("$count"),
-    ],
-  );
-}
+  Widget _buildActionButton({
+    required IconData icon,
+    int? count,
+    required VoidCallback onPressed,
+  }) {
+    return Row(
+      children: [
+        IconButton(
+          icon: Icon(icon),
+          onPressed: onPressed,
+        ),
+        if (count != null) Text("$count"),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -194,9 +217,10 @@ Widget _buildActionButton({
         ),
         _buildActionButton(
           icon: bookmarked ? Icons.bookmark : Icons.bookmark_border,
-          onPressed: () {
+          onPressed: () {            
             setState(() {
               bookmarked = !bookmarked;
+              bookmarked ? moveToTop(parentTweet) : null;
             });
           }
         )
