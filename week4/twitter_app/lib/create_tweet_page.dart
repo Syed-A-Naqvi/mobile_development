@@ -44,7 +44,7 @@ class CreateTweetPage extends StatelessWidget {
             TextField(
               controller: imageURLController, // Assign controller
               decoration: const InputDecoration(
-                labelText: 'Image URL',
+                labelText: 'Image URL (optional)',
               ),
             ),
             const SizedBox(height: 20),
