@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:intl/intl.dart';
+import 'package:twitter_app/create_tweet_page.dart';
 
 class TweetWidget extends StatelessWidget {
   
@@ -12,19 +13,21 @@ class TweetWidget extends StatelessWidget {
   final int numComments;
   final int numRetweets;
   final int numLikes;
-  final Function(TweetWidget) moveToTop;
+  final Map<String,Function(TweetWidget)> tweetFunctions;
+  final Function(TweetWidget, TweetWidget) addReply;
   
   TweetWidget(
     this.userShortName,
     this.userLongName,
     this.description,
     this.imageURL,
-    this.numComments,
-    this.numRetweets,
-    this.numLikes,
-    this.moveToTop,
-    {super.key})
-    : timeStamp = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+    this.tweetFunctions,
+    this.addReply, {
+    this.numComments=0,
+    this.numRetweets=0,
+    this.numLikes=0,
+    super.key,
+  }) : timeStamp = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
 
   // Method to generate a random color
   Color _getRandomColor() {
@@ -55,7 +58,18 @@ class TweetWidget extends StatelessWidget {
             ),
           ),
         ),
-        IconButton(onPressed: () {}, icon: const Icon(Icons.expand_more)),
+        PopupMenuButton<String>(
+          onSelected: (String result) {
+            // Handle menu item selection
+            tweetFunctions['hideTweet']!(this);
+          },
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+            const PopupMenuItem<String>(
+              value: 'Option 1',
+              child: Text('Hide Tweet'),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -78,7 +92,7 @@ class TweetWidget extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(width: 15),
+          const SizedBox(width: 5),
 
           // Tweet Content Column
           Expanded(
@@ -87,7 +101,7 @@ class TweetWidget extends StatelessWidget {
               children: [
                 _buildUserRow(),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+                  padding: const EdgeInsets.fromLTRB(0, 5, 0, 15),
                   child: Text(description),
                 ),
                 ClipRRect(
@@ -104,7 +118,8 @@ class TweetWidget extends StatelessWidget {
                   initialLikes: numLikes,
                   initialRetweets: numRetweets,
                   parentTweet: this,
-                  moveToTop: moveToTop,
+                  tweetFunctions: tweetFunctions,
+                  addReply: addReply,
                 ),
               ],
             ),
@@ -121,7 +136,8 @@ class ActionsRow extends StatefulWidget {
   final int initialRetweets;
   final int initialLikes;
   final TweetWidget parentTweet;
-  final Function(TweetWidget) moveToTop;
+  final Map<String,Function(TweetWidget)> tweetFunctions;
+  final Function(TweetWidget, TweetWidget) addReply;
 
   const ActionsRow({
     super.key,
@@ -129,7 +145,8 @@ class ActionsRow extends StatefulWidget {
     this.initialRetweets = 0,
     this.initialLikes = 0,
     required this.parentTweet,
-    required this.moveToTop,
+    required this.tweetFunctions,
+    required this.addReply,
   });
 
   @override
@@ -142,11 +159,11 @@ class ActionsRowState extends State<ActionsRow> {
   late int retweetsCount;
   late int likesCount;
   late TweetWidget parentTweet;
-  late Function(TweetWidget) moveToTop;
+  late Map<String,Function(TweetWidget)> tweetFunctions;
+  late Function(TweetWidget, TweetWidget) addReply;
   late bool liked;
   late bool retweeted;
   late bool bookmarked;
-  late bool commented;
 
   @override
   void initState() {
@@ -156,12 +173,12 @@ class ActionsRowState extends State<ActionsRow> {
     retweetsCount = widget.initialRetweets;
     likesCount = widget.initialLikes;
     parentTweet = widget.parentTweet;
-    moveToTop = widget.moveToTop;
+    tweetFunctions = widget.tweetFunctions;
+    addReply = widget.addReply;
     // Initialize boolean states
     liked = false;
     retweeted = false;
     bookmarked = false;
-    commented = false;
   }
 
   Widget _buildActionButton({
@@ -187,11 +204,26 @@ class ActionsRowState extends State<ActionsRow> {
       children: [
         // Comments Button
         _buildActionButton(
-          icon: commented ? Icons.chat : Icons.chat_bubble_outline_rounded,
+          icon: Icons.chat_outlined,
           count: commentsCount,
           onPressed: () {
             setState(() {
-              commented = !commented;
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CreateTweetPage(
+                      tweetFunctions,
+                      addReply,
+                      parentTweet: parentTweet,
+                    ),
+                  ),
+                ).then( (result) {
+                  if (result == true){
+                    setState(() {
+                      commentsCount++;
+                    });
+                  }
+                });
             });
           }
         ),
@@ -220,7 +252,7 @@ class ActionsRowState extends State<ActionsRow> {
           onPressed: () {            
             setState(() {
               bookmarked = !bookmarked;
-              bookmarked ? moveToTop(parentTweet) : null;
+              bookmarked ? tweetFunctions['moveTweetToTop']!(parentTweet) : null;
             });
           }
         )
