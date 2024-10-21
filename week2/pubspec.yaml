@@ -1,0 +1,9 @@
+name: standalone_dart_project
+description: A standalone Dart project
+version: 1.0.0
+
+environment:
+  sdk: '>=3.5.2 <4.0.0'
+
+dev_dependencies:
+  test: ^1.25.8
