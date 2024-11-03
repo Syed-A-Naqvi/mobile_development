@@ -1,16 +1,14 @@
-# grades_database
+# Grades Management System
 
-A new Flutter project.
+- Feature 1 (Selection Mode):
 
-## Getting Started
+    - Ability to enter selection mode and select one, multiple or all records 
 
-This project is a starting point for a Flutter application.
+    - Edit menu pops up only if a single record is selected
 
-A few resources to get you started if this is your first Flutter project:
+    - Delete option pops up if any record is selected
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Feature 2 (Export as CSV):
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+    - Selected records can be exported as a csv file with a user-defined path
+    

@@ -1,21 +1,51 @@
 import 'package:flutter/material.dart';
-import 'package:grades_database/list_grades.dart';
-import 'package:grades_database/main.dart';
+import 'grade.dart';
 
 class GradeForm extends StatefulWidget {
+  final Grade? grade; // Optional grade parameter for editing
+
+  const GradeForm({super.key, this.grade});
+
   @override
-  _GradeFormState createState() => _GradeFormState();
+  State<GradeForm> createState() => _GradeFormState();
 }
 
 class _GradeFormState extends State<GradeForm> {
-  final TextEditingController _sidController = TextEditingController();
-  final TextEditingController _gradeController = TextEditingController();
+  final _sidController = TextEditingController();
+  final _gradeController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.grade != null) {
+      // Populate the controllers with existing data if editing
+      _sidController.text = widget.grade!.sid;
+      _gradeController.text = widget.grade!.grade;
+    }
+  }
+
+  @override
+  void dispose() {
+    _sidController.dispose();
+    _gradeController.dispose();
+    super.dispose();
+  }
+
+  void _saveGrade() {
+    // Create a Grade object with the entered data
+    final sid = _sidController.text;
+    final grade = _gradeController.text;
+    if (sid.isNotEmpty && grade.isNotEmpty) {
+      Navigator.pop(context, Grade(sid: sid, grade: grade, id: widget.grade?.id));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Enter Grade'),
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+        title: Text(widget.grade == null ? 'Add Grade' : 'Edit Grade'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -30,19 +60,19 @@ class _GradeFormState extends State<GradeForm> {
               decoration: const InputDecoration(labelText: 'Grade'),
             ),
             const SizedBox(height: 20),
-            FloatingActionButton(
+            ElevatedButton(
+              style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.primary),
+              ),
               onPressed: _saveGrade,
-              child: const Icon(Icons.save),
+              child: Text(
+                'Save',
+                style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)
+              ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  void _saveGrade() {
-    // Implement saving logic
-    print("Save Grade: ${_sidController.text}, ${_gradeController.text}");
-    Navigator.pop(context);
   }
 }
