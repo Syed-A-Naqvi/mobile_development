@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "706079671355",
+    "project_id": "grade-system-a25c8",
+    "storage_bucket": "grade-system-a25c8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:706079671355:android:ffcff3e826ef33b44e881e",
+        "android_client_info": {
+          "package_name": "com.example.grade_management_firebase"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2rKtm6RRhaZzhoFp0XeP0FupYSW4_8mA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
