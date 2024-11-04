@@ -70,7 +70,6 @@ class GradesModel {
   // Listen for real-time updates
   void listenForChanges(Function(List<Grade>) onChange) async {
     CollectionReference db = await _database;
-    
     db.snapshots().listen((snapshot) async {
       List<Grade> grades = await getAllGrades(latest: snapshot);
       onChange(grades);

@@ -37,8 +37,9 @@ class _ListGradesState extends State<ListGrades> {
     _gradesModel.listenForChanges((grades) {
       setState(() {
         _grades = grades;
+        if(selectionMode) _toggleSelectionMode();
       });
-    });
+    });   // Update UI with the loaded grades
   }
 
 Grade _randomGrade() {
@@ -118,7 +119,9 @@ Grade _randomGrade() {
   }
 
   void _deleteSelected() async {
-    for (var id in selectedItems){
+    final itemsToDelete = Set<String>.from(selectedItems);
+
+    for (var id in itemsToDelete){
       await _gradesModel.deleteGradeById(id);
     }
   }
@@ -304,38 +307,63 @@ Grade _randomGrade() {
 
   // Function to export selected grades to a CSV file
   Future<void> _exportSelectedToCSV() async {
-    // Filter out the selected grades
-    final selectedGrades = _grades.where((grade) => selectedItems.contains(grade.id!)).toList();
-
-    // Prepare CSV data
-    List<List<String>> csvData = [
-      ['SID', 'Grade'], // CSV headers
-      ...selectedGrades.map((grade) => [grade.sid, grade.grade])
-    ];
-
-    // Convert to CSV format
-    String csv = const ListToCsvConverter(eol: '\n').convert(csvData);
-
-    // Let the user choose the directory to save the file
-    String? outputPath = await FilePicker.platform.getDirectoryPath();
-
-    if (outputPath != null) {
-      // Ask the user for the file name
-      String? fileName = await _getFileNameFromUser();
-      if (fileName != null && fileName.isNotEmpty) {
-        final path = '$outputPath/$fileName.csv';
-
-        // Write to the file
-        final file = File(path);
-        await file.writeAsString(csv);
-
-        print('CSV file saved to $path');
+    try {
+      // Filter out the selected grades
+      final selectedGrades = _grades.where((grade) => selectedItems.contains(grade.id!)).toList();
+  
+      // Prepare CSV data
+      List<List<String>> csvData = [
+        ['SID', 'Grade'], // CSV headers
+        ...selectedGrades.map((grade) => [grade.sid, grade.grade])
+      ];
+  
+      // Convert to CSV format
+      String csv = const ListToCsvConverter(eol: '\n').convert(csvData);
+  
+      // Let the user choose the directory to save the file
+      String? outputPath = await FilePicker.platform.getDirectoryPath();
+  
+      if (outputPath != null) {
+        // Ask the user for the file name
+        String? fileName = await _getFileNameFromUser();
+        if (fileName != null && fileName.isNotEmpty) {
+          final path = '$outputPath/$fileName.csv';
+  
+          // Write to the file
+          final file = File(path);
+          await file.writeAsString(csv);
+  
+          if (mounted) {
+            print('CSV file saved to $path');
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('CSV file saved to $path')),
+            );
+          }
+        } else {
+          if (mounted) {
+            print('No file name provided');
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('No file name provided')),
+            );
+          }
+        }
       } else {
-        print('No file name provided');
+        if (mounted) {
+          print('No directory selected');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No directory selected')),
+          );
+        }
       }
-    } else {
-      print('No directory selected');
+    } catch (e) {
+      if (mounted) {
+        print('Error exporting CSV: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error exporting CSV: $e')),
+        );
+      }
     }
+    _toggleSelectionMode();
   }
 
   // Function to get the file name from the user
@@ -348,10 +376,13 @@ Grade _randomGrade() {
         return AlertDialog(
           title: const Text('Enter file name'),
           content: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              TextField(
-                controller: fileNameController,
-                decoration: const InputDecoration(hintText: 'File name'),
+              Expanded(
+                child: TextField(
+                  controller: fileNameController,
+                  decoration: const InputDecoration(hintText: 'File name',),
+                ),
               ),
               const Text('.csv'),
             ],
